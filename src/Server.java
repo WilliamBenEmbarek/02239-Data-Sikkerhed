@@ -14,7 +14,7 @@ public class Server implements Print {
     private boolean running= false;
     private HashMap<String, String> config = new HashMap<String,String>();
     private int currentID;
-    final MessageDigest digest = MessageDigest.getInstance(SHA3_256);
+    //final MessageDigest digest = MessageDigest.getInstance("SHA_256");
     final String passwordPath = "passwords.pwd";
 
 
@@ -39,7 +39,8 @@ public class Server implements Print {
     }
 
     public boolean print(String filename, String printer){
-        JobInterface newJobInterface = new Job(currentID,filename);
+        JobInterface newJob = new Job(currentID,filename);
+        queue().add(newJob);
         currentID++;
         return true;
     }
