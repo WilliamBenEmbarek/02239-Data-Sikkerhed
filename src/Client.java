@@ -79,6 +79,9 @@ public class Client {
                         String value = kb.nextLine();
                         stub.setConfig(parameter,value);
                         break;
+                    case "help":
+                        help();
+                        break;
                 }
             }
 
@@ -89,7 +92,7 @@ public class Client {
         }
     }
 
-    public void help() {
+    public static void help() {
         System.out.println("The following commands are available : ");
         System.out.println("start : Start the print server");
         System.out.println("stop : Stop the print server");
