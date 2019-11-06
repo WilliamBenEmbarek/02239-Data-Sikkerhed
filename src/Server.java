@@ -18,7 +18,7 @@ public class Server implements Print {
     private boolean running = false;
     private HashMap<String, String> config = new HashMap<String, String>();
     private int currentID;
-    final String passwordPath = "/home/willbenem/Uni/02239-Data-Security/RMI-lab/src/passwords.txt";
+    final String passwordPath = "passwords.txt";
     private HashMap<String,String> tokenMap = new HashMap<String,String>();
     public Server() throws NoSuchAlgorithmException {
     }
