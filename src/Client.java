@@ -1,6 +1,5 @@
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.sql.SQLOutput;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -11,50 +10,66 @@ public class Client {
     public static void main(String[] args) {
 
         String host = "localhost";
+        String token = null;
         try {
             Scanner kb = new Scanner(System.in);
             Registry registry = LocateRegistry.getRegistry(host,6969);
             Print stub = (Print) registry.lookup("server");
-            System.out.println("Welcome to the PrintServer3000");
-            String currentStatus = stub.status();
-            System.out.println("Current server status is : " + currentStatus);
             while(true) {
+                if (token == null) {
+                    System.out.println("Welcome to the PrintServer3000");
+                    do {
+                        System.out.println("Username?: ");
+                        String username = kb.nextLine();
+                        System.out.println("Password?: ");
+                        String password = kb.nextLine();
+                        try {
+                            token = stub.authenticate(username, password);
+                        } catch (AuthenticationException e) {
+                            System.err.println(e.toString());
+                        }
+                    } while (token == null);
+                    String currentStatus = stub.status(token);
+                    System.out.println("Current server status is : " + currentStatus);
+                }
                 System.out.println("What would you like to do? (Type help for help): ");
                 String input = kb.nextLine();
                 switch (input) {
                     case "start":
-                        if (stub.start()) {
+                        if (stub.start(token)) {
                             System.out.println("Print server started");
                         } else {
                             System.out.println("Error : Server already started");
                         }
                         break;
                     case "stop":
-                        if (stub.stop()) {
+                        if (stub.stop(token)) {
                             System.out.println("Print server stopped");
+                            token = null;
                         } else {
                             System.out.println("Error : Server not running");
                         }
                         break;
                     case "restart":
-                        if (stub.restart()) {
+                        if (stub.restart(token)) {
                             System.out.println("Print server restarted");
+                            token = null;
                         } else {
                             System.out.println("Error : Server not running");
                         }
                         break;
                     case "status":
-                        System.out.println("Current server status is : " + stub.status());
+                        System.out.println("Current server status is : " + stub.status(token));
                         break;
                     case "queue":
-                        LinkedList<JobInterface> queue = stub.queue();
+                        LinkedList<JobInterface> queue = stub.queue(token);
                         for (JobInterface item : queue) {
                             System.out.println(item.toString());
                         }
                         break;
                     case "topQueue":
                         int jobNumber = kb.nextInt();
-                        if (stub.topQueue(jobNumber)){
+                        if (stub.topQueue(jobNumber,token)){
                             System.out.println("Successfully moved job:" + jobNumber + "to top of queue");
                         } else {
                             System.out.println("Error : Failed to move job to top of queue");
@@ -65,27 +80,25 @@ public class Client {
                         String fileName = kb.nextLine();
                         System.out.println("What printer do you want to print to : ");
                         String printer = kb.nextLine();
-                        stub.print(fileName, printer);
+                        stub.print(fileName, printer,token);
                         break;
                     case "readConfig":
                         System.out.println("What parameter do you want to read? : ");
                         String parameter = kb.nextLine();
-                        System.out.println(stub.readConfig(parameter));
+                        System.out.println(stub.readConfig(parameter,token));
                         break;
                     case "setConfig":
                         System.out.println("What parameter do you want to set : ");
                         parameter = kb.nextLine();
                         System.out.println("What value do you want to set it to?");
                         String value = kb.nextLine();
-                        stub.setConfig(parameter,value);
+                        stub.setConfig(parameter,value,token);
                         break;
                     case "help":
                         help();
                         break;
                 }
             }
-
-
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();

@@ -1,32 +1,27 @@
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 
 public interface Print extends Remote {
-    boolean print(String filename, String printer) throws RemoteException;
-    ;
+    boolean print(String filename, String printer, String token) throws RemoteException, AuthenticationException;
 
-    LinkedList<JobInterface> queue() throws RemoteException;
-    ;
+    String authenticate(String username, String password) throws IOException, NoSuchAlgorithmException, AuthenticationException;
 
-    boolean topQueue(int job) throws RemoteException;
-    ;
+    LinkedList<JobInterface> queue(String token) throws RemoteException, AuthenticationException;
 
-    boolean start() throws RemoteException;
-    ;
+    boolean topQueue(int job, String token) throws RemoteException, AuthenticationException;
 
-    boolean stop() throws RemoteException;
-    ;
+    boolean start(String token) throws RemoteException, AuthenticationException;
 
-    boolean restart() throws RemoteException;
-    ;
+    boolean stop(String token) throws RemoteException, AuthenticationException;
 
-    String status() throws RemoteException;
-    ;
+    boolean restart(String token) throws RemoteException, AuthenticationException;
 
-    String readConfig(String parameter) throws RemoteException;
-    ;
+    String status(String token) throws RemoteException, AuthenticationException;
 
-    void setConfig(String parameter, String value) throws RemoteException;
-    ;
+    String readConfig(String parameter, String token) throws RemoteException, AuthenticationException;
+
+    void setConfig(String parameter, String value, String token) throws RemoteException, AuthenticationException;
 }
