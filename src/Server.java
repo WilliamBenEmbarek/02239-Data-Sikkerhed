@@ -14,12 +14,14 @@ import java.util.UUID;
 
 public class Server implements Print {
 
-    private LinkedList<JobInterface> printQueue = new LinkedList<JobInterface>();
+    private static BufferedReader br;
+    private LinkedList<Job> printQueue = new LinkedList<Job>();
     private boolean running = false;
     private HashMap<String, String> config = new HashMap<String, String>();
     private int currentID;
-    final String passwordPath = "passwords.txt";
+    final static String passwordPath = "/home/willbenem/Uni/02239-Data-Security/RMI-lab/src/passwords.txt";
     private HashMap<String,String> tokenMap = new HashMap<String,String>();
+
     public Server() throws NoSuchAlgorithmException {
     }
 
@@ -31,7 +33,7 @@ public class Server implements Print {
             // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.createRegistry(6969);
             registry.rebind("server", stub);
-
+            br = new BufferedReader(new FileReader(passwordPath));
             System.err.println("Server ready");
         } catch (Exception e) {
             System.err.println("Server exception: " + e.toString());
@@ -43,7 +45,7 @@ public class Server implements Print {
         String line;
         String[] credentials;
         String passwordDigest;
-        if (tokenMap.containsKey(username)) { // Yes potential timing attack here :P
+        if (tokenMap.containsKey(username)) { // Yes po'tential timing attack here :P
             return tokenMap.get(username);
         }
         BufferedReader br = new BufferedReader(new FileReader(passwordPath));
@@ -88,36 +90,48 @@ public class Server implements Print {
     }
 
     public boolean print(String filename, String printer, String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
-            JobInterface newJob = new Job(currentID, filename);
-            printQueue.add(newJob);
-            currentID++;
-            return true;
+        if (running) {
+            if (tokenMap.containsValue(token)) {
+                Job newJob = new Job(currentID, filename);
+                printQueue.add(newJob);
+                currentID++;
+                return true;
+            } else {
+                throw new AuthenticationException("User is not authenticated");
+            }
         } else {
-            throw new AuthenticationException("User is not authenticated");
+            return false;
         }
     }
 
-    public LinkedList<JobInterface> queue(String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
-            return printQueue;
+    public LinkedList<Job> queue(String token) throws AuthenticationException {
+        if (running) {
+            if (tokenMap.containsValue(token)) {
+                return printQueue;
+            } else {
+                throw new AuthenticationException("User is not authenticated");
+            }
         } else {
-            throw new AuthenticationException("User is not authenticated");
+            return new LinkedList<Job>();
         }
     }
     public boolean topQueue(int job, String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
-            JobInterface tempJobInterface = new Job(job, "");
-            int index = printQueue.indexOf(tempJobInterface);
-            if (index != -1) {
-                tempJobInterface = printQueue.get(index);
-                printQueue.remove(index);
-                return printQueue.offerFirst(tempJobInterface);
+        if (running) {
+            if (tokenMap.containsValue(token)) {
+                Job tempJob = new Job(job, "");
+                int index = printQueue.indexOf(tempJob);
+                if (index != -1) {
+                    tempJob = printQueue.get(index);
+                    printQueue.remove(index);
+                    return printQueue.offerFirst(tempJob);
+                } else {
+                    return false;
+                }
             } else {
-                return false;
+                throw new AuthenticationException("User is not authenticated");
             }
         } else {
-            throw new AuthenticationException("User is not authenticated");
+            return false;
         }
     }
     public boolean start(String token) throws AuthenticationException {
@@ -161,9 +175,13 @@ public class Server implements Print {
     public String status(String token) throws AuthenticationException {
         if (tokenMap.containsValue(token)) {
             StringBuilder sb = new StringBuilder();
-            sb.append("Status: ").append(running);
             if (running) {
-                sb.append("Print Queue length:").append(printQueue.size());
+                sb.append("Server Status : Running \n");
+            } else {
+                sb.append("Server Status: Off \n");
+            }
+            if (running) {
+                sb.append("Print Queue length: \n").append(printQueue.size());
             }
             return sb.toString();
         } else {
@@ -171,17 +189,26 @@ public class Server implements Print {
         }
     }
     public String readConfig(String parameter, String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
-            return config.get(parameter);
+        if (running) {
+            if (tokenMap.containsValue(token)) {
+                return config.get(parameter);
+            } else {
+                throw new AuthenticationException("User is not authenticated");
+            }
         } else {
-            throw new AuthenticationException("User is not authenticated");
+            return "";
         }
     }
-    public void setConfig(String parameter, String value, String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
-            config.put(parameter, value);
+    public boolean setConfig(String parameter, String value, String token) throws AuthenticationException {
+        if (running) {
+            if (tokenMap.containsValue(token)) {
+                config.put(parameter, value);
+                return true;
+            } else {
+                throw new AuthenticationException("User is not authenticated");
+            }
         } else {
-            throw new AuthenticationException("User is not authenticated");
+            return false;
         }
     }
 }

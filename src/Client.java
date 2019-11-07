@@ -19,9 +19,9 @@ public class Client {
                 if (token == null) {
                     System.out.println("Welcome to the PrintServer3000");
                     do {
-                        System.out.println("Username?: ");
+                        System.out.println("Enter username: ");
                         String username = kb.nextLine();
-                        System.out.println("Password?: ");
+                        System.out.println("Enter password: ");
                         String password = kb.nextLine();
                         try {
                             token = stub.authenticate(username, password);
@@ -45,6 +45,7 @@ public class Client {
                     case "stop":
                         if (stub.stop(token)) {
                             System.out.println("Print server stopped");
+                            System.out.println("Session Ended");
                             token = null;
                         } else {
                             System.out.println("Error : Server not running");
@@ -53,6 +54,7 @@ public class Client {
                     case "restart":
                         if (stub.restart(token)) {
                             System.out.println("Print server restarted");
+                            System.out.println("Session Ended");
                             token = null;
                         } else {
                             System.out.println("Error : Server not running");
@@ -62,12 +64,17 @@ public class Client {
                         System.out.println("Current server status is : " + stub.status(token));
                         break;
                     case "queue":
-                        LinkedList<JobInterface> queue = stub.queue(token);
-                        for (JobInterface item : queue) {
-                            System.out.println(item.toString());
+                        LinkedList<Job> queue = stub.queue(token);
+                        if (queue.size() != 0) {
+                            for (Job item : queue) {
+                                System.out.println(item.toString());
+                            }
+                        } else {
+                            System.out.println("Queue is empty, is the server running?");
                         }
                         break;
                     case "topQueue":
+                        System.out.println("What job do you want to move to the top of the queue :");
                         int jobNumber = kb.nextInt();
                         if (stub.topQueue(jobNumber,token)){
                             System.out.println("Successfully moved job:" + jobNumber + "to top of queue");
@@ -96,6 +103,9 @@ public class Client {
                         break;
                     case "help":
                         help();
+                        break;
+                    default:
+                        System.err.println("Invalid Command : ");
                         break;
                 }
             }

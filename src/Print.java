@@ -9,7 +9,7 @@ public interface Print extends Remote {
 
     String authenticate(String username, String password) throws IOException, NoSuchAlgorithmException, AuthenticationException;
 
-    LinkedList<JobInterface> queue(String token) throws RemoteException, AuthenticationException;
+    LinkedList<Job> queue(String token) throws RemoteException, AuthenticationException;
 
     boolean topQueue(int job, String token) throws RemoteException, AuthenticationException;
 
@@ -23,5 +23,5 @@ public interface Print extends Remote {
 
     String readConfig(String parameter, String token) throws RemoteException, AuthenticationException;
 
-    void setConfig(String parameter, String value, String token) throws RemoteException, AuthenticationException;
+    boolean setConfig(String parameter, String value, String token) throws RemoteException, AuthenticationException;
 }
