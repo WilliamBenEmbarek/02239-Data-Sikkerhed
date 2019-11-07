@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.rmi.registry.LocateRegistry;
@@ -10,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.UUID;
 
 public class Server implements Print {
@@ -19,7 +22,7 @@ public class Server implements Print {
     private boolean running = false;
     private HashMap<String, String> config = new HashMap<String, String>();
     private int currentID;
-    final static String passwordPath = "/home/willbenem/Uni/02239-Data-Security/RMI-lab/src/passwords.txt";
+    final static String passwordPath = "src/passwords.txt";
     private HashMap<String,String> tokenMap = new HashMap<String,String>();
 
     public Server() throws NoSuchAlgorithmException {
@@ -70,16 +73,40 @@ public class Server implements Print {
         br.close();
         throw new AuthenticationException("Wrong Username or Password");
     }
+    
+    private static boolean createUser(String username, String password) throws IOException, NoSuchAlgorithmException {
+        String salt = generateSalt(16);
+        String passwordDigestBase64 = bytesToBase64(hash(password, salt));
+        BufferedWriter  bw = new BufferedWriter(new FileWriter(passwordPath, true));
+        bw.write(username + "," + passwordDigestBase64 + "," + stringToBase64(salt));
+        bw.newLine();
+        bw.close();
+        return true;
+    }
+
+    public static String generateSalt(int length) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        while (sb.length() < length) {
+            sb.append(Integer.toHexString(random.nextInt()));
+        }
+        return sb.toString();
+    }
 
     private static byte[] hash(String password, String salt) throws NoSuchAlgorithmException {
-        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        digest.update(salt.getBytes(StandardCharsets.UTF_8));
-        final byte[] sha3_256bytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+        final MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(salt.getBytes(StandardCharsets.UTF_8));
+        final byte[] sha3_256bytes = md.digest(password.getBytes(StandardCharsets.UTF_8));
         return sha3_256bytes;
     }
 
     private static String bytesToBase64(byte[] bytes) {
         String encodedString = Base64.getEncoder().encodeToString(bytes);
+        return encodedString;
+    }
+
+    private static String stringToBase64(String string) {
+        String encodedString = Base64.getEncoder().encodeToString(string.getBytes());
         return encodedString;
     }
 
