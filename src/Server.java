@@ -54,9 +54,9 @@ public class Server implements Print {
             if (username.equals(credentials[0])) {
                 passwordDigest = bytesToBase64(hash(password, base64ToString(credentials[2])));
                 if (passwordDigest.equals(credentials[1])) {
-                    System.out.println("User successfully verified.");
                     br.close();
                     String token = UUID.randomUUID().toString().replace("-","");
+                    System.out.println("User authenticated: User : " + username + " token : " + token);
                     tokenMap.put(token,username);
                     return token;
                 } else {
