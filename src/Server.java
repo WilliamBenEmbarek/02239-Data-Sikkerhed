@@ -48,9 +48,6 @@ public class Server implements Print {
         String line;
         String[] credentials;
         String passwordDigest;
-        if (tokenMap.containsKey(username)) { // Yes po'tential timing attack here :P
-            return tokenMap.get(username);
-        }
         BufferedReader br = new BufferedReader(new FileReader(passwordPath));
         while ((line = br.readLine()) != null) {
             credentials = line.split(",");
@@ -60,7 +57,7 @@ public class Server implements Print {
                     System.out.println("User successfully verified.");
                     br.close();
                     String token = UUID.randomUUID().toString().replace("-","");
-                    tokenMap.put(username,token);
+                    tokenMap.put(token,username);
                     return token;
                 } else {
                     System.out.println("Wrong password.");
@@ -118,7 +115,8 @@ public class Server implements Print {
 
     public boolean print(String filename, String printer, String token) throws AuthenticationException {
         if (running) {
-            if (tokenMap.containsValue(token)) {
+            if (tokenMap.containsKey(token)) {
+                System.out.println("Command : Print by User : " + tokenMap.get(token));
                 Job newJob = new Job(currentID, filename);
                 printQueue.add(newJob);
                 currentID++;
@@ -133,7 +131,8 @@ public class Server implements Print {
 
     public LinkedList<Job> queue(String token) throws AuthenticationException {
         if (running) {
-            if (tokenMap.containsValue(token)) {
+            if (tokenMap.containsKey(token)) {
+                System.out.println("Command : List Queue by User : " + tokenMap.get(token));
                 return printQueue;
             } else {
                 throw new AuthenticationException("User is not authenticated");
@@ -144,7 +143,8 @@ public class Server implements Print {
     }
     public boolean topQueue(int job, String token) throws AuthenticationException {
         if (running) {
-            if (tokenMap.containsValue(token)) {
+            if (tokenMap.containsKey(token)) {
+                System.out.println("Command : topQueue by User : " + tokenMap.get(token));
                 Job tempJob = new Job(job, "");
                 int index = printQueue.indexOf(tempJob);
                 if (index != -1) {
@@ -162,7 +162,8 @@ public class Server implements Print {
         }
     }
     public boolean start(String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
+        if (tokenMap.containsKey(token)) {
+            System.out.println("Command : Start by User : " + tokenMap.get(token));
             if (!running) {
                 running = true;
                 return true;
@@ -173,10 +174,14 @@ public class Server implements Print {
             throw new AuthenticationException("User is not authenticated");
         }
     }
+
     public boolean stop(String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
+        if (tokenMap.containsKey(token)) {
+            System.out.println("Command : Stop by User : " + tokenMap.get(token));
             if (running) {
                 running = false;
+                tokenMap.clear();
+                printQueue.clear();
                 return true;
             } else {
                 return false;
@@ -186,10 +191,12 @@ public class Server implements Print {
         }
     }
     public boolean restart(String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
+        if (tokenMap.containsKey(token)) {
+            System.out.println("Command : Restart by User : " + tokenMap.get(token));
             if (running) {
                 running = false;
                 printQueue.clear();
+                tokenMap.clear();
                 running = true;
                 return true;
             } else {
@@ -200,7 +207,8 @@ public class Server implements Print {
         }
     }
     public String status(String token) throws AuthenticationException {
-        if (tokenMap.containsValue(token)) {
+        if (tokenMap.containsKey(token)) {
+            System.out.println("Command : Status by User : " + tokenMap.get(token));
             StringBuilder sb = new StringBuilder();
             if (running) {
                 sb.append("Server Status : Running \n");
@@ -217,7 +225,8 @@ public class Server implements Print {
     }
     public String readConfig(String parameter, String token) throws AuthenticationException {
         if (running) {
-            if (tokenMap.containsValue(token)) {
+            if (tokenMap.containsKey(token)) {
+                System.out.println("Command : Read Config by User : " + tokenMap.get(token));
                 return config.get(parameter);
             } else {
                 throw new AuthenticationException("User is not authenticated");
@@ -228,7 +237,8 @@ public class Server implements Print {
     }
     public boolean setConfig(String parameter, String value, String token) throws AuthenticationException {
         if (running) {
-            if (tokenMap.containsValue(token)) {
+            if (tokenMap.containsKey(token)) {
+                System.out.println("Command : Set Config by User : " + tokenMap.get(token));
                 config.put(parameter, value);
                 return true;
             } else {
